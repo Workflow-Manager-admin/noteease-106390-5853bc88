@@ -18,14 +18,22 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setTheme(R.style.AppTheme)
         setContentView(R.layout.activity_main)
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        setupActionBarWithNavController(navHostFragment.navController)
+        // Defensive: Support older fragment manager API and null check
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+        if (navHostFragment is NavHostFragment) {
+            setupActionBarWithNavController(navHostFragment.navController)
+        } else if (navHostFragment == null) {
+            throw IllegalStateException("NavHostFragment not found. Ensure that activity_main.xml contains a fragment with id 'nav_host_fragment'.")
+        } else {
+            throw IllegalStateException("Fragment with id 'nav_host_fragment' is not a NavHostFragment.")
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        val navController =
-            (supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment).navController
-        return navController.navigateUp() || super.onSupportNavigateUp()
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+        if (navHostFragment is NavHostFragment) {
+            return navHostFragment.navController.navigateUp() || super.onSupportNavigateUp()
+        }
+        return super.onSupportNavigateUp()
     }
 }
